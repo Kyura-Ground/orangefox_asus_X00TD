@@ -16,7 +16,6 @@ echo 'Loading the OrangeFox build environment...'
 # Android's interactive setup contains optional probes that return nonzero.
 set +e
 source build/envsetup.sh
-unset ALLOW_MISSING_DEPENDENCIES
 lunch twrp_X00TD-eng
 lunch_status=$?
 set -e
