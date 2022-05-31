@@ -7,6 +7,9 @@
 
 DEVICE_PATH := device/asus/X00TD
 
+# Required by the minimal TWRP/OrangeFox manifest, which omits CTS/VTS projects.
+ALLOW_MISSING_DEPENDENCIES := true
+
 # Architecture
 TARGET_ARCH := arm64
 TARGET_ARCH_VARIANT := armv8-a
