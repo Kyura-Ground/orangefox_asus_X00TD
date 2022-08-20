@@ -121,6 +121,10 @@ def check_image(path):
     for name in ['system', 'system_ext', 'product', 'vendor', 'odm']:
         assert any(row[0] == name and 'logical' in row[4].split(',')
                    for row in entries), f'{name} must be a logical partition'
+    metadata = [row for row in entries if row[1] == '/metadata']
+    assert len(metadata) == 1, 'Missing or duplicate physical metadata partition'
+    assert metadata[0][0:3] == ['/dev/block/by-name/logdump', '/metadata', 'ext4'], \
+        'Metadata must use the physical logdump partition'
     data = [row for row in entries if row[1] == '/data']
     assert {row[2] for row in data} == {'ext4', 'f2fs'}, 'Missing userdata filesystem'
     for row in data:
@@ -129,6 +133,7 @@ def check_image(path):
     return {'image': str(path), 'bytes': len(image), 'kernel': kernel_info,
             'header_version': 1, 'logical_partitions': 5, 'FBE_policy': 'v2+emmc_optimized',
             'framework_hidl_managers': 2, 'task_profiles': len(profiles['Profiles']),
+            'metadata_block_device': metadata[0][0],
             'apex_loading': False,
             'packaging_checks': 'passed', 'device_boot_and_decryption_test': 'still required'}
 

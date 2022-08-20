@@ -68,6 +68,7 @@ TARGET_PREBUILT_KERNEL := $(DEVICE_PATH)/prebuilt/Image.gz-dtb
 endif
 
 # Physical sizes: X00TD has a dedicated 64 MiB recovery partition.
+BOARD_USES_METADATA_PARTITION := true
 BOARD_FLASH_BLOCK_SIZE := 262144
 BOARD_BOOTIMAGE_PARTITION_SIZE := 67108864
 BOARD_RECOVERYIMAGE_PARTITION_SIZE := 67108864
@@ -86,6 +87,7 @@ TARGET_COPY_OUT_VENDOR := vendor
 TARGET_COPY_OUT_ODM := odm
 TARGET_COPY_OUT_PRODUCT := product
 TARGET_COPY_OUT_SYSTEM_EXT := system_ext
+BOARD_SEPOLICY_DIRS += $(DEVICE_PATH)/sepolicy/vendor
 
 # Retrofit super spans the original 4 GiB system and 800 MiB vendor.
 BOARD_KERNEL_CMDLINE += androidboot.super_partition=system
