@@ -27,32 +27,15 @@ on property:ro.boot.usbcontroller=*
 on property:sys.usb.config=adb && property:sys.usb.configfs=1
     start adbd
 
-# Configfs triggers
+# Extend the configfs transitions in /system/etc/init/hw/init.rc.
 on property:sys.usb.config=none && property:sys.usb.configfs=1
-    write /config/usb_gadget/g1/UDC "none"
-    stop adbd
-    setprop sys.usb.ffs.ready 0
-    rm /config/usb_gadget/g1/configs/b.1/f1
     rm /config/usb_gadget/g1/configs/b.1/f2
-    setprop sys.usb.state none
 
 on property:sys.usb.config=sideload && property:sys.usb.ffs.ready=1 && property:sys.usb.configfs=1
     write /config/usb_gadget/g1/idProduct 0x4ee7
-    write /config/usb_gadget/g1/configs/b.1/strings/0x409/configuration "sideload"
-    rm /config/usb_gadget/g1/configs/b.1/f1
-    rm /config/usb_gadget/g1/configs/b.1/f2
-    symlink /config/usb_gadget/g1/functions/ffs.adb /config/usb_gadget/g1/configs/b.1/f1
-    write /config/usb_gadget/g1/UDC ${sys.usb.controller}
-    setprop sys.usb.state ${sys.usb.config}
 
 on property:sys.usb.config=adb && property:sys.usb.ffs.ready=1 && property:sys.usb.configfs=1
     write /config/usb_gadget/g1/idProduct 0x4ee7
-    write /config/usb_gadget/g1/configs/b.1/strings/0x409/configuration "adb"
-    rm /config/usb_gadget/g1/configs/b.1/f1
-    rm /config/usb_gadget/g1/configs/b.1/f2
-    symlink /config/usb_gadget/g1/functions/ffs.adb /config/usb_gadget/g1/configs/b.1/f1
-    write /config/usb_gadget/g1/UDC ${sys.usb.controller}
-    setprop sys.usb.state ${sys.usb.config}
 
 on property:sys.usb.config=mtp,adb && property:sys.usb.configfs=1
     start adbd
