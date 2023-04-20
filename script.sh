@@ -12,8 +12,18 @@ for dependency in device/qcom/common device/qcom/twrp-common; do
 done
 
 source "$device_path/orangefox-config.sh"
+echo 'Loading the OrangeFox build environment...'
+# Android's interactive setup contains optional probes that return nonzero.
+set +e
 source build/envsetup.sh
+unset ALLOW_MISSING_DEPENDENCIES
 lunch twrp_X00TD-eng
+lunch_status=$?
+set -e
+if (( lunch_status != 0 )); then
+    echo "Lunch failed with exit code $lunch_status." >&2
+    exit "$lunch_status"
+fi
 [[ $(get_build_var PLATFORM_SDK_VERSION) == 32 ]] || {
     echo 'This tree requires the OrangeFox 12.1 build base (SDK 32).' >&2
     exit 1
