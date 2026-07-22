@@ -1,0 +1,24 @@
+From: noamtu123 <noamtu123@users.noreply.github.com>
+Date: Wed, 22 Jul 2026 12:13:58 +0000
+Subject: [PATCH] debuggerd: Make the crash dumper available in recovery
+
+Enable the existing recovery variant so crash_dump64 can emit a native
+backtrace when the recovery process crashes. Retain the existing module
+implementation and its shared dependencies.
+
+Adapt the recovery debug kit to request only the crash dumper. Logcat is
+already enabled; no strace or tombstoned service is added to X00TD.
+
+Signed-off-by: ikwfahmi <mikhwanfahmi4@gmail.com>
+Change-Id: I98a0f1977e35fd7f93ed92cc9f088533415df5cd
+
+--- a/debuggerd/Android.bp
++++ b/debuggerd/Android.bp
+@@ -366,6 +366,7 @@
+ 
+ cc_binary {
+     name: "crash_dump",
++    recovery_available: true,
+     srcs: [
+         "crash_dump.cpp",
+         "util.cpp",

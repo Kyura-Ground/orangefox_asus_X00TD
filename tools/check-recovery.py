@@ -85,7 +85,8 @@ def check_image(path):
     files = cpio_entries(gzip.decompress(ramdisk))
     required_files = [
         'system/bin/recovery', 'system/bin/fastbootd', 'system/bin/prepdecrypt.sh',
-        'system/bin/hwservicemanager', 'system/etc/vintf/manifest.xml',
+        'system/bin/hwservicemanager', 'system/bin/crash_dump64',
+        'system/etc/vintf/manifest.xml',
         'system/etc/task_profiles.json',
         'system/bin/qseecomd',
         'system/lib64/hw/android.hardware.fastboot@1.1-impl-mock.so',
@@ -134,6 +135,7 @@ def check_image(path):
             'header_version': 1, 'logical_partitions': 5, 'FBE_policy': 'v2+emmc_optimized',
             'framework_hidl_managers': 2, 'task_profiles': len(profiles['Profiles']),
             'metadata_block_device': metadata[0][0],
+            'native_crash_helper': True,
             'apex_loading': False,
             'packaging_checks': 'passed', 'device_boot_and_decryption_test': 'still required'}
 
