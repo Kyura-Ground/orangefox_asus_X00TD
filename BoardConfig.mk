@@ -121,6 +121,7 @@ TW_INCLUDE_REPACKTOOLS := true
 TW_INCLUDE_RESETPROP := true
 TWRP_INCLUDE_LOGCAT := true
 TARGET_USES_LOGD := true
+TARGET_RECOVERY_DEVICE_MODULES += crash_dump.recovery
 TW_EXCLUDE_DEFAULT_USB_INIT := true
 TW_INCLUDE_NTFS_3G := true
 TW_BRIGHTNESS_PATH := /sys/class/backlight/backlight/brightness

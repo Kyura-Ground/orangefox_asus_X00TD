@@ -46,6 +46,7 @@ apply_source_patch() {
 
 apply_source_patch bootable/recovery retrofit-super-image.patch
 apply_source_patch bootable/recovery gui-action-lifetime.patch
+apply_source_patch system/core recovery-crash-dump.patch
 
 m -j"${BUILD_JOBS:-$(nproc)}" recoveryimage
 python3 "$device_path/tools/check-recovery.py" "${ANDROID_PRODUCT_OUT:-${OUT_DIR:-out}/target/product/X00TD}/recovery.img"
