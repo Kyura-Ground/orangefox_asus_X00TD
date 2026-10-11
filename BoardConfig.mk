@@ -105,6 +105,9 @@ BOARD_QTI_DYNAMIC_PARTITIONS_PARTITION_LIST := odm product system system_ext ven
 TARGET_SCREEN_DENSITY := 440
 TARGET_RECOVERY_PIXEL_FORMAT := RGBX_8888
 TARGET_RECOVERY_FSTAB := $(DEVICE_PATH)/recovery/root/system/etc/recovery.fstab
+# Keep the complete recovery fstab instead of replacing userdata with the last
+# ext4/f2fs entry parsed from the ROM vendor fstab.
+TW_SKIP_ADDITIONAL_FSTAB := true
 TARGET_RECOVERY_DEVICE_DIRS := $(DEVICE_PATH)
 TW_INCLUDE_FASTBOOTD := true
 TARGET_RECOVERY_QCOM_RTC_FIX := true
