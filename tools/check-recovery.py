@@ -8,6 +8,7 @@ import re
 import struct
 import sys
 import zlib
+import xml.etree.ElementTree as ET
 
 
 def cpio_entries(archive):
@@ -74,12 +75,18 @@ def check_image(path):
     cmdline = image[64:576].split(b'\0')[0] + b' ' + image[608:1632].split(b'\0')[0]
     assert b'androidboot.super_partition=system' in cmdline, 'Wrong retrofit metadata device'
     assert b'androidboot.dynamic_partitions_retrofit=true' in cmdline, 'Missing retrofit flag'
+    for arg in [b'androidboot.configfs=true', b'androidboot.usbcontroller=a800000.dwc3',
+                b'androidboot.android_dt_dir=/non-existent',
+                b'androidboot.boot_devices=soc/c0c4000.sdhci']:
+        assert arg in cmdline.split(), f'Missing recovery boot argument: {arg.decode()}'
     kernel = image[page:page + kernel_size]
     kernel_info = check_kernel(kernel)
     ramdisk = image[ramdisk_offset:ramdisk_offset + ramdisk_size]
     files = cpio_entries(gzip.decompress(ramdisk))
     required_files = [
         'system/bin/recovery', 'system/bin/fastbootd', 'system/bin/prepdecrypt.sh',
+        'system/bin/hwservicemanager', 'system/etc/vintf/manifest.xml',
+        'system/etc/task_profiles.json',
         'system/bin/qseecomd',
         'system/lib64/hw/android.hardware.fastboot@1.1-impl-mock.so',
         'system/lib64/libion.so', 'system/lib64/libxml2.so',
@@ -91,6 +98,23 @@ def check_image(path):
     ]
     for name in required_files:
         assert name in files, f'Missing packaged dependency: {name}'
+    assert b'Apex is disabled in this build' in files['system/bin/recovery'], \
+        'Recovery must be rebuilt with TW_EXCLUDE_APEX=true'
+    framework = ET.fromstring(files['system/etc/vintf/manifest.xml'])
+    assert framework.get('type') == 'framework', 'Wrong framework manifest type'
+    services = {(hal.findtext('name'), hal.findtext('transport'), hal.findtext('fqname'))
+                for hal in framework.findall('hal')}
+    assert ('android.hidl.manager', 'hwbinder', '@1.2::IServiceManager/default') in services, \
+        'Missing framework HIDL service manager declaration'
+    assert ('android.hidl.token', 'hwbinder', '@1.0::ITokenManager/default') in services, \
+        'Missing framework HIDL token manager declaration'
+    profiles = json.loads(files['system/etc/task_profiles.json'])
+    names = {profile['Name'] for section in ['Profiles', 'AggregateProfiles']
+             for profile in profiles[section]}
+    assert {'SCHED_SP_DEFAULT', 'SCHED_SP_BACKGROUND', 'CPUSET_SP_DEFAULT',
+            'CPUSET_SP_SYSTEM'} <= names, 'Missing standard process profiles'
+    for aggregate in profiles['AggregateProfiles']:
+        assert set(aggregate['Profiles']) <= names, 'Unresolved aggregate task profile'
     fstab = files['system/etc/recovery.fstab'].decode()
     entries = [line.split() for line in fstab.splitlines()
                if line.strip() and not line.lstrip().startswith('#')]
@@ -104,6 +128,8 @@ def check_image(path):
         assert 'metadata_encryption=' not in row[4], 'ROM does not use metadata encryption'
     return {'image': str(path), 'bytes': len(image), 'kernel': kernel_info,
             'header_version': 1, 'logical_partitions': 5, 'FBE_policy': 'v2+emmc_optimized',
+            'framework_hidl_managers': 2, 'task_profiles': len(profiles['Profiles']),
+            'apex_loading': False,
             'packaging_checks': 'passed', 'device_boot_and_decryption_test': 'still required'}
 
 
@@ -116,5 +142,6 @@ if __name__ == '__main__':
         else:
             sys.exit('Usage: check-recovery.py [--kernel] path/to/image')
         print(json.dumps(result, indent=2))
-    except (AssertionError, KeyError, ValueError, OSError, EOFError, struct.error, zlib.error) as error:
+    except (AssertionError, KeyError, ValueError, OSError, EOFError, struct.error, zlib.error,
+            ET.ParseError) as error:
         sys.exit(f'Recovery image check failed: {error}')
