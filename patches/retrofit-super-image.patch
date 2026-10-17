@@ -1,0 +1,34 @@
+From f33b9e05d51dc62f31a23ad7fad2f4b1b773fdb3 Mon Sep 17 00:00:00 2001
+From: ikwfahmi <mikhwanfahmi4@gmail.com>
+Date: Sat, 17 Oct 2026 11:40:51 +0700
+Subject: [PATCH] recovery: Avoid incomplete retrofit super images
+
+The automatically generated Super image entry describes only the metadata block device. On multi-device retrofit layouts such as X00TD, backing up or flashing that entry omits extents stored on the other physical partition. Disable those two raw-image operations on retrofit devices while retaining logical partition mapping and ZIP installation.
+
+Change-Id: I7ec0eb8c8b7f79899b9080677a6c0c575e92203e
+
+Signed-off-by: ikwfahmi <mikhwanfahmi4@gmail.com>
+---
+ partitionmanager.cpp | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/partitionmanager.cpp b/partitionmanager.cpp
+index 83c9080..0278ea3 100644
+--- a/partitionmanager.cpp
++++ b/partitionmanager.cpp
+@@ -4780,6 +4780,12 @@ void TWPartitionManager::Setup_Super_Partition() {
+ 	superPartition->Is_Present = true;
+ 	superPartition->Is_SubPartition = false;
+ 	superPartition->Setup_Image();
++	// A retrofit super may span several physical devices. This object
++	// describes only the metadata device, so it is not a complete image.
++	if (android::base::GetBoolProperty("ro.boot.dynamic_partitions_retrofit", false)) {
++		superPartition->Can_Flash_Img = false;
++		superPartition->Can_Be_Backed_Up = false;
++	}
+ 	Add_Partition(superPartition);
+ 	PartitionManager.Output_Partition(superPartition);
+ }
+-- 
+2.56.0
+
