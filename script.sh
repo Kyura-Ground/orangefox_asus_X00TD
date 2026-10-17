@@ -33,13 +33,19 @@ if [[ ${X00TD_BUILD_KERNEL_FROM_SOURCE:-false} != true ]]; then
     python3 "$device_path/tools/check-recovery.py" --kernel "$device_path/prebuilt/Image.gz-dtb"
 fi
 
-patch_path="$PWD/$device_path/patches/retrofit-super-image.patch"
-if git -C bootable/recovery apply --reverse --check "$patch_path" 2>/dev/null; then
-    echo 'Retrofit super image patch is already applied.'
-else
-    git -C bootable/recovery apply --check "$patch_path"
-    git -C bootable/recovery apply "$patch_path"
-fi
+apply_source_patch() {
+    local source_repo=$1 patch_name=$2
+    local patch_path="$PWD/$device_path/patches/$patch_name"
+    if git -C "$source_repo" apply --reverse --check "$patch_path" 2>/dev/null; then
+        echo "$patch_name is already applied."
+    else
+        git -C "$source_repo" apply --check "$patch_path"
+        git -C "$source_repo" apply "$patch_path"
+    fi
+}
+
+apply_source_patch bootable/recovery retrofit-super-image.patch
+apply_source_patch bootable/recovery gui-action-lifetime.patch
 
 m -j"${BUILD_JOBS:-$(nproc)}" recoveryimage
 python3 "$device_path/tools/check-recovery.py" "${ANDROID_PRODUCT_OUT:-${OUT_DIR:-out}/target/product/X00TD}/recovery.img"
