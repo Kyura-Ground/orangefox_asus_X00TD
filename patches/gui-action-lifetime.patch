@@ -1,0 +1,32 @@
+From: ikwfahmi <mikhwanfahmi4@gmail.com>
+Date: Sat, 17 Oct 2026 18:25:00 +0700
+Subject: [PATCH] gui: Own threaded actions independently of theme pages
+
+The render thread can reload a theme after the worker requests reload,
+deleting the page-owned GUIAction while ActionThread still iterates its
+actions. Give each worker batch a standalone executor and copy the action
+strings before starting it. Release that executor when the batch ends.
+
+Signed-off-by: ikwfahmi <mikhwanfahmi4@gmail.com>
+Change-Id: I938fe07b4dc4bac0be41d45e55a66d5f63010c16
+
+--- a/gui/action.cpp
++++ b/gui/action.cpp
+@@ -93,8 +93,15 @@
+   {
+     ActionThread *this_;
+     GUIAction *act;
+-    ThreadData(ActionThread * this_, GUIAction * act):this_(this_), act(act)
+-    {
++    ThreadData(ActionThread * this_, GUIAction * source):this_(this_), act(new GUIAction(nullptr))
++    {
++      // A theme reload may destroy the page that owns the source action.
++      // Keep the worker's executor and action strings independent of it.
++      act->mActions = source->mActions;
++    }
++    ~ThreadData()
++    {
++      delete act;
+     }
+   };
+ 
