@@ -75,6 +75,7 @@ TARGET_COPY_OUT_SYSTEM_EXT := system_ext
 
 # Retrofit super spans the original 4 GiB system and 800 MiB vendor.
 BOARD_KERNEL_CMDLINE += androidboot.super_partition=system
+BOARD_KERNEL_CMDLINE += androidboot.dynamic_partitions=true androidboot.dynamic_partitions_retrofit=true
 BOARD_SUPER_PARTITION_BLOCK_DEVICES := system vendor
 BOARD_SUPER_PARTITION_METADATA_DEVICE := system
 BOARD_SUPER_PARTITION_SIZE := 5133828096
@@ -90,6 +91,7 @@ TARGET_RECOVERY_PIXEL_FORMAT := RGBX_8888
 TARGET_RECOVERY_FSTAB := $(DEVICE_PATH)/recovery/root/system/etc/recovery.fstab
 TARGET_RECOVERY_DEVICE_DIRS := $(DEVICE_PATH)
 TW_INCLUDE_FASTBOOTD := true
+TARGET_RECOVERY_QCOM_RTC_FIX := true
 TW_THEME := portrait_hdpi
 TW_EXTRA_LANGUAGES := true
 RECOVERY_SDCARD_ON_DATA := true
