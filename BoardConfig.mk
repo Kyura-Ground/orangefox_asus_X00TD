@@ -30,7 +30,7 @@ TARGET_BOARD_PLATFORM_GPU := qcom-adreno509
 QCOM_BOARD_PLATFORMS += $(TARGET_BOARD_PLATFORM)
 TARGET_OTA_ASSERT_DEVICE := ASUS_X00TD,X00TD,X00T
 
-# Build the existing 4.19 kernel with its appended device trees.
+# Kernel 4.19 with appended X00TD device trees.
 BOARD_BOOT_HEADER_VERSION := 1
 BOARD_KERNEL_BASE := 0x00000000
 BOARD_KERNEL_PAGESIZE := 4096
@@ -47,14 +47,19 @@ BOARD_KERNEL_CMDLINE += service_locator.enable=1 printk.devkmsg=on usbcore.autos
 BOARD_KERNEL_CMDLINE += androidboot.selinux=permissive
 TARGET_KERNEL_ARCH := arm64
 TARGET_KERNEL_HEADER_ARCH := arm64
+ifeq ($(X00TD_BUILD_KERNEL_FROM_SOURCE),true)
 TARGET_KERNEL_SOURCE := kernel/asus/sdm660
 TARGET_KERNEL_CONFIG := vendor/asus/X00TD_defconfig
 TARGET_KERNEL_CLANG_COMPILE := true
+TARGET_KERNEL_NO_GCC := true
 KERNEL_MAKE_FLAGS += LLVM=1 LLVM_IAS=1
 KERNEL_LD := LD=ld.lld
 NEED_KERNEL_MODULE_RECOVERY := true
 # The TWRP kernel task resolves this relative to arch/arm64/configs.
 TARGET_KERNEL_ADDITIONAL_CONFIG := ../../../../../../$(DEVICE_PATH)/config/recovery.config
+else
+TARGET_PREBUILT_KERNEL := $(DEVICE_PATH)/prebuilt/Image.gz-dtb
+endif
 
 # Physical sizes: X00TD has a dedicated 64 MiB recovery partition.
 BOARD_FLASH_BLOCK_SIZE := 262144

@@ -1,1 +1,2 @@
 *.patch -whitespace
+/prebuilt/Image.gz-dtb binary
