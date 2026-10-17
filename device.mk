@@ -11,6 +11,10 @@ $(call inherit-product, $(SRC_TARGET_DIR)/product/core_64_bit_only.mk)
 
 PRODUCT_SHIPPING_API_LEVEL := 27
 PRODUCT_SOONG_NAMESPACES += $(DEVICE_PATH)
+PRODUCT_USE_DYNAMIC_PARTITIONS := true
+PRODUCT_RETROFIT_DYNAMIC_PARTITIONS := true
+
+PRODUCT_PACKAGES += fastbootd
 
 PRODUCT_PACKAGES += qcom_decrypt qcom_decrypt_fbe
 
