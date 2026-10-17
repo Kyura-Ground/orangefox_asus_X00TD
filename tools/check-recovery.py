@@ -82,6 +82,7 @@ def check_image(path):
         'system/bin/recovery', 'system/bin/fastbootd', 'system/bin/prepdecrypt.sh',
         'system/bin/qseecomd',
         'system/lib64/hw/android.hardware.fastboot@1.1-impl-mock.so',
+        'system/lib64/libion.so', 'system/lib64/libxml2.so',
         'system/bin/android.hardware.keymaster@3.0-service-qti',
         'system/bin/android.hardware.gatekeeper@1.0-service-qti',
         'init.recovery.qcom_decrypt.rc', 'init.recovery.qcom_decrypt.fbe.rc',
