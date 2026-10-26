@@ -1,14 +1,9 @@
 {
-  "source_zip": "4.19.325-Singularity-20261017-1046-signed.zip",
-  "source_zip_sha256": "8a417eb0fe4bb79976f2f91a3f0939c566ee02d82cb6f6b2ea7a5f7a783773e2",
-  "kernel_sha256": "64af8277030b9b2cf6ef3b68f6d1b391caf80f10fcbc4f86f37392b170aba224",
-  "kernel_version": "Linux version 4.19.325-Singularity/0c72ba61fbe7 (Kyura@github) (Android (15682573, +pgo, +bolt, +lto, +mlgo, based on r596125) Clang 22.0.2, LLD 22.0.2) #1 SMP PREEMPT Sat Oct 17 10:42:30 WIB 2026",
-  "source_repository": "https://github.com/Kyura-Ground/android_kernel_asus_sdm660-4.19",
-  "source_commit": "0c72ba61fbe7",
-  "config": {
-    "DMABUF_SYSFS_STATS": false,
-    "SECURITY_SELINUX_DEVELOP": true,
-    "VSOCKETS": false
-  },
-  "note": "Extracted unchanged from the user-supplied AnyKernel ZIP. Recovery ramdisk is built separately; the ZIP installer is not used."
+  "source_repository": "https://github.com/Kyura-Ground/android_kernel_asus_sdm660",
+  "source_branch": "lineage-23.2",
+  "source_commit": "97ae91dfcbc742575f760a3afddbdd0e56f02e97",
+  "kernel_sha256": "01aed5b68b4f5afc839fefeec400a20e29013b19c1255409b24815853435286d",
+  "circleci_job": 714,
+  "source_url": "https://output.circle-artifacts.com/output/job/1b967c77-59c3-4ec2-8996-61d37687e5f3/artifacts/0/KERNEL-BUILDS/Image.gz-dtb",
+  "note": "Unmodified Image.gz-dtb from CircleCI pipeline 377. The AnyKernel installer is not used."
 }

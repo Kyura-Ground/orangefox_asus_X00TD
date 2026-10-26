@@ -1,7 +1,8 @@
-# Do not override the logical system/vendor entries with physical backing devices.
+# Physical partition images and firmware backups.
+/system_image emmc /dev/block/bootdevice/by-name/system flags=display="System Image";backup=1;flashimg=1
+/vendor_image emmc /dev/block/bootdevice/by-name/vendor flags=display="Vendor Image";backup=1;flashimg=1
 /boot emmc /dev/block/bootdevice/by-name/boot flags=display="Boot";backup=1;flashimg=1
 /recovery emmc /dev/block/bootdevice/by-name/recovery flags=display="Recovery";backup=1;flashimg=1
-/metadata ext4 /dev/block/by-name/logdump flags=display="Metadata";fsflags="discard"
 /firmware vfat /dev/block/bootdevice/by-name/modem flags=display="Firmware";mounttodecrypt;fsflags=ro
 /persist ext4 /dev/block/bootdevice/by-name/persist flags=display="Persist";backup=1;mounttodecrypt
 /efs1 emmc /dev/block/bootdevice/by-name/modemst1 flags=display="EFS";backup=1

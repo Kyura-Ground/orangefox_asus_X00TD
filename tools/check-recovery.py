@@ -34,18 +34,20 @@ def check_kernel(kernel):
     inflater = zlib.decompressobj(31)
     raw_kernel = inflater.decompress(kernel)
     assert inflater.eof, 'Truncated compressed kernel'
-    version = re.search(rb'Linux version 4\.19\.[^\x00\n]+', raw_kernel)
-    assert version, 'The image must contain the device 4.19 kernel'
+    version = re.search(rb'Linux version 4\.4\.[^\x00\n]+', raw_kernel)
+    assert version, 'The image must contain the device 4.4 kernel'
     first = raw_kernel.find(b'IKCFG_ST')
     last = raw_kernel.find(b'IKCFG_ED', first)
     assert first >= 0 and last > first, 'Kernel configuration is missing'
     config = gzip.decompress(raw_kernel[first + 8:last]).decode()
-    required = ['CONFIG_ION=y', 'CONFIG_FS_ENCRYPTION=y', 'CONFIG_FS_VERITY=y',
+    required = ['CONFIG_ION=y', 'CONFIG_EXT4_ENCRYPTION=y',
+                'CONFIG_EXT4_FS_ENCRYPTION=y', 'CONFIG_EXT4_FS_ICE_ENCRYPTION=y',
+                'CONFIG_CRYPTO_DEV_QCOM_ICE=y', 'CONFIG_USB_CONFIGFS_F_FS=y',
+                'CONFIG_USB_CONFIGFS_F_MTP=y',
                 'CONFIG_EXT4_FS=y', 'CONFIG_F2FS_FS=y', 'CONFIG_DM_CRYPT=y',
                 'CONFIG_SECURITY_SELINUX_DEVELOP=y']
     for option in required:
         assert option in config.splitlines(), f'Missing kernel capability: {option}'
-    assert '# CONFIG_DMABUF_SYSFS_STATS is not set' in config, 'Unsafe legacy ION stats configuration'
     dtbs = inflater.unused_data
     offset = 0
     dtb_count = 0
@@ -57,7 +59,7 @@ def check_kernel(kernel):
         dtb_count += 1
     assert dtb_count > 0, 'This device needs an appended DTB'
     return {'version': version[0].decode(), 'sha256': hashlib.sha256(kernel).hexdigest(),
-            'appended_dtbs': dtb_count, 'dma_buf_stats': False,
+            'appended_dtbs': dtb_count, 'FBE_policy': 'v1 (Qualcomm ICE)',
             'vsockets': 'CONFIG_VSOCKETS=y' in config.splitlines()}
 
 
@@ -65,7 +67,7 @@ def check_image(path):
     image = path.read_bytes()
     assert 0 < len(image) <= 67108864, 'Recovery exceeds the 64 MiB partition'
     assert image[:8] == b'ANDROID!', 'Wrong boot image magic'
-    assert struct.unpack_from('<I', image, 40)[0] == 1, 'Boot header must be v1'
+    assert struct.unpack_from('<I', image, 40)[0] == 0, 'Boot header must be v0'
     page = struct.unpack_from('<I', image, 36)[0]
     assert page == 4096, 'Wrong boot image page size'
     kernel_size = struct.unpack_from('<I', image, 8)[0]
@@ -73,8 +75,8 @@ def check_image(path):
     ramdisk_offset = page + ((kernel_size + page - 1) // page) * page
     assert ramdisk_offset + ramdisk_size <= len(image), 'Truncated boot image'
     cmdline = image[64:576].split(b'\0')[0] + b' ' + image[608:1632].split(b'\0')[0]
-    assert b'androidboot.super_partition=system' in cmdline, 'Wrong retrofit metadata device'
-    assert b'androidboot.dynamic_partitions_retrofit=true' in cmdline, 'Missing retrofit flag'
+    assert b'androidboot.super_partition=' not in cmdline, 'Unexpected super partition'
+    assert b'androidboot.dynamic_partitions' not in cmdline, 'Unexpected dynamic partitions'
     for arg in [b'androidboot.configfs=true', b'androidboot.usbcontroller=a800000.dwc3',
                 b'androidboot.android_dt_dir=/non-existent',
                 b'androidboot.boot_devices=soc/c0c4000.sdhci']:
@@ -84,13 +86,14 @@ def check_image(path):
     ramdisk = image[ramdisk_offset:ramdisk_offset + ramdisk_size]
     files = cpio_entries(gzip.decompress(ramdisk))
     required_files = [
-        'system/bin/recovery', 'system/bin/fastbootd', 'system/bin/prepdecrypt.sh',
+        'system/bin/recovery', 'system/bin/prepdecrypt.sh',
         'system/bin/hwservicemanager', 'system/bin/crash_dump64',
         'system/etc/vintf/manifest.xml',
         'system/etc/task_profiles.json',
         'system/bin/qseecomd',
-        'system/lib64/hw/android.hardware.fastboot@1.1-impl-mock.so',
         'system/lib64/libion.so', 'system/lib64/libxml2.so',
+        'system/lib64/libhidltransport.so', 'system/lib64/libhwbinder.so',
+        'system/lib64/libhardware_legacy.so',
         'system/bin/android.hardware.keymaster@3.0-service-qti',
         'system/bin/android.hardware.gatekeeper@1.0-service-qti',
         'init.recovery.qcom_decrypt.rc', 'init.recovery.qcom_decrypt.fbe.rc',
@@ -119,23 +122,30 @@ def check_image(path):
     fstab = files['system/etc/recovery.fstab'].decode()
     entries = [line.split() for line in fstab.splitlines()
                if line.strip() and not line.lstrip().startswith('#')]
-    for name in ['system', 'system_ext', 'product', 'vendor', 'odm']:
-        assert any(row[0] == name and 'logical' in row[4].split(',')
-                   for row in entries), f'{name} must be a logical partition'
-    metadata = [row for row in entries if row[1] == '/metadata']
-    assert len(metadata) == 1, 'Missing or duplicate physical metadata partition'
-    assert metadata[0][0:3] == ['/dev/block/by-name/logdump', '/metadata', 'ext4'], \
-        'Metadata must use the physical logdump partition'
+    for name, mountpoint in [('system', '/system_root'), ('vendor', '/vendor')]:
+        assert any(row[0] == '/dev/block/bootdevice/by-name/' + name and
+                   row[1] == mountpoint and row[2] == 'ext4' for row in entries), \
+            f'{name} must use the physical partition'
+    assert all('logical' not in row[4].split(',') for row in entries), \
+        'Unexpected logical partition'
+    assert not any(row[1] == '/metadata' for row in entries), \
+        'This ROM uses temporary metadata, not a block device'
+    assert b'mount tmpfs tmpfs /metadata size=10m' in files['init.recovery.qcom.rc'], \
+        'Missing temporary metadata mount'
+    flags = files['system/etc/twrp.flags'].decode()
+    assert '/metadata ' not in flags and 'logdump' not in flags, \
+        'Unexpected physical metadata override'
     data = [row for row in entries if row[1] == '/data']
-    assert {row[2] for row in data} == {'ext4', 'f2fs'}, 'Missing userdata filesystem'
-    for row in data:
-        assert 'fileencryption=aes-256-xts:aes-256-cts:v2+emmc_optimized' in row[4].split(',')
-        assert 'metadata_encryption=' not in row[4], 'ROM does not use metadata encryption'
+    assert len(data) == 1 and data[0][2] == 'ext4', 'ROM userdata must be ext4'
+    assert 'fileencryption=ice' in data[0][4].split(','), 'Wrong FBE policy'
+    assert 'metadata_encryption=' not in data[0][4], 'ROM does not use metadata encryption'
+    assert b'/sys/class/leds/lcd-backlight/brightness 128' in files['init.recovery.usb.rc'], \
+        'Wrong kernel 4.4 backlight path'
     return {'image': str(path), 'bytes': len(image), 'kernel': kernel_info,
-            'header_version': 1, 'logical_partitions': 5, 'FBE_policy': 'v2+emmc_optimized',
+            'header_version': 0, 'physical_partitions': ['system', 'vendor'],
+            'FBE_policy': 'v1 (Qualcomm ICE)',
             'framework_hidl_managers': 2, 'task_profiles': len(profiles['Profiles']),
-            'metadata_block_device': metadata[0][0],
-            'native_crash_helper': True,
+            'metadata': 'tmpfs', 'native_crash_helper': True,
             'apex_loading': False,
             'packaging_checks': 'passed', 'device_boot_and_decryption_test': 'still required'}
 

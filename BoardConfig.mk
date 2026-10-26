@@ -33,8 +33,8 @@ TARGET_BOARD_PLATFORM_GPU := qcom-adreno509
 QCOM_BOARD_PLATFORMS += $(TARGET_BOARD_PLATFORM)
 TARGET_OTA_ASSERT_DEVICE := ASUS_X00TD,X00TD,X00T
 
-# Kernel 4.19 with appended X00TD device trees.
-BOARD_BOOT_HEADER_VERSION := 1
+# Kernel 4.4 with appended X00TD device trees.
+BOARD_BOOT_HEADER_VERSION := 0
 BOARD_KERNEL_BASE := 0x00000000
 BOARD_KERNEL_PAGESIZE := 4096
 BOARD_RAMDISK_OFFSET := 0x01000000
@@ -43,28 +43,29 @@ BOARD_KERNEL_IMAGE_NAME := Image.gz-dtb
 BOARD_MKBOOTIMG_ARGS += --header_version $(BOARD_BOOT_HEADER_VERSION)
 BOARD_MKBOOTIMG_ARGS += --ramdisk_offset $(BOARD_RAMDISK_OFFSET)
 BOARD_MKBOOTIMG_ARGS += --tags_offset $(BOARD_KERNEL_TAGS_OFFSET)
-BOARD_KERNEL_CMDLINE := androidboot.hardware=qcom user_debug=31 msm_rtb.filter=0x37
-BOARD_KERNEL_CMDLINE += ehci-hcd.park=3 lpm_levels.sleep_disabled=1
+BOARD_KERNEL_CMDLINE := console=ttyMSM0,115200n8 androidboot.console=ttyMSM0
+BOARD_KERNEL_CMDLINE += earlycon=msm_serial_dm,0xc170000 androidboot.hardware=qcom
+BOARD_KERNEL_CMDLINE += user_debug=31 msm_rtb.filter=0x37 ehci-hcd.park=3
 BOARD_KERNEL_CMDLINE += sched_enable_hmp=1 sched_enable_power_aware=1
-BOARD_KERNEL_CMDLINE += service_locator.enable=1 printk.devkmsg=on usbcore.autosuspend=7
+BOARD_KERNEL_CMDLINE += service_locator.enable=1 swiotlb=1 loop.max_part=7
 BOARD_KERNEL_CMDLINE += androidboot.selinux=permissive
 BOARD_KERNEL_CMDLINE += androidboot.configfs=true androidboot.usbcontroller=a800000.dwc3
 BOARD_KERNEL_CMDLINE += androidboot.android_dt_dir=/non-existent
 BOARD_KERNEL_CMDLINE += androidboot.boot_devices=soc/c0c4000.sdhci
 TARGET_KERNEL_ARCH := arm64
 TARGET_KERNEL_HEADER_ARCH := arm64
-ifeq ($(X00TD_BUILD_KERNEL_FROM_SOURCE),true)
 TARGET_KERNEL_SOURCE := kernel/asus/sdm660
-TARGET_KERNEL_CONFIG := vendor/asus/X00TD_defconfig
+TARGET_KERNEL_CONFIG := X00TD_defconfig
+ifeq ($(X00TD_BUILD_KERNEL_FROM_SOURCE),true)
 TARGET_KERNEL_CLANG_COMPILE := true
-TARGET_KERNEL_NO_GCC := true
-KERNEL_MAKE_FLAGS += LLVM=1 LLVM_IAS=1
+TARGET_KERNEL_ADDITIONAL_FLAGS += LLVM=1 LLVM_IAS=1
+KERNEL_CC = CC="$(CCACHE_BIN) clang -fdebug-default-version=4"
 KERNEL_LD := LD=ld.lld
-NEED_KERNEL_MODULE_RECOVERY := true
 # The TWRP kernel task resolves this relative to arch/arm64/configs.
 TARGET_KERNEL_ADDITIONAL_CONFIG := ../../../../../../$(DEVICE_PATH)/config/recovery.config
 else
 TARGET_PREBUILT_KERNEL := $(DEVICE_PATH)/prebuilt/Image.gz-dtb
+TARGET_FORCE_PREBUILT_KERNEL := true
 endif
 
 # Physical sizes: X00TD has a dedicated 64 MiB recovery partition.
@@ -73,33 +74,16 @@ BOARD_FLASH_BLOCK_SIZE := 262144
 BOARD_BOOTIMAGE_PARTITION_SIZE := 67108864
 BOARD_RECOVERYIMAGE_PARTITION_SIZE := 67108864
 BOARD_CACHEIMAGE_PARTITION_SIZE := 367001600
+BOARD_SYSTEMIMAGE_PARTITION_SIZE := 4294967296
+BOARD_VENDORIMAGE_PARTITION_SIZE := 838860800
 BOARD_CACHEIMAGE_FILE_SYSTEM_TYPE := ext4
-BOARD_ODMIMAGE_FILE_SYSTEM_TYPE := ext4
-BOARD_PRODUCTIMAGE_FILE_SYSTEM_TYPE := ext4
 BOARD_SYSTEMIMAGE_PARTITION_TYPE := ext4
-BOARD_SYSTEM_EXTIMAGE_FILE_SYSTEM_TYPE := ext4
 BOARD_VENDORIMAGE_FILE_SYSTEM_TYPE := ext4
 BOARD_USERDATAIMAGE_FILE_SYSTEM_TYPE := ext4
 BOARD_HAS_LARGE_FILESYSTEM := true
 TARGET_USERIMAGES_USE_EXT4 := true
 TARGET_USERIMAGES_USE_F2FS := true
 TARGET_COPY_OUT_VENDOR := vendor
-TARGET_COPY_OUT_ODM := odm
-TARGET_COPY_OUT_PRODUCT := product
-TARGET_COPY_OUT_SYSTEM_EXT := system_ext
-BOARD_SEPOLICY_DIRS += $(DEVICE_PATH)/sepolicy/vendor
-
-# Retrofit super spans the original 4 GiB system and 800 MiB vendor.
-BOARD_KERNEL_CMDLINE += androidboot.super_partition=system
-BOARD_KERNEL_CMDLINE += androidboot.dynamic_partitions=true androidboot.dynamic_partitions_retrofit=true
-BOARD_SUPER_PARTITION_BLOCK_DEVICES := system vendor
-BOARD_SUPER_PARTITION_METADATA_DEVICE := system
-BOARD_SUPER_PARTITION_SIZE := 5133828096
-BOARD_SUPER_PARTITION_SYSTEM_DEVICE_SIZE := 4294967296
-BOARD_SUPER_PARTITION_VENDOR_DEVICE_SIZE := 838860800
-BOARD_SUPER_PARTITION_GROUPS := qti_dynamic_partitions
-BOARD_QTI_DYNAMIC_PARTITIONS_SIZE := 5129633792
-BOARD_QTI_DYNAMIC_PARTITIONS_PARTITION_LIST := odm product system system_ext vendor
 
 # Recovery
 TARGET_SCREEN_DENSITY := 440
@@ -109,7 +93,6 @@ TARGET_RECOVERY_FSTAB := $(DEVICE_PATH)/recovery/root/system/etc/recovery.fstab
 # ext4/f2fs entry parsed from the ROM vendor fstab.
 TW_SKIP_ADDITIONAL_FSTAB := true
 TARGET_RECOVERY_DEVICE_DIRS := $(DEVICE_PATH)
-TW_INCLUDE_FASTBOOTD := true
 TARGET_RECOVERY_QCOM_RTC_FIX := true
 TW_THEME := portrait_hdpi
 TW_EXTRA_LANGUAGES := true
@@ -124,14 +107,15 @@ TARGET_USES_LOGD := true
 TARGET_RECOVERY_DEVICE_MODULES += crash_dump.recovery
 TW_EXCLUDE_DEFAULT_USB_INIT := true
 TW_INCLUDE_NTFS_3G := true
-TW_BRIGHTNESS_PATH := /sys/class/backlight/backlight/brightness
-TW_MAX_BRIGHTNESS := 4095
-TW_DEFAULT_BRIGHTNESS := 1024
+TW_BRIGHTNESS_PATH := /sys/class/leds/lcd-backlight/brightness
+TW_MAX_BRIGHTNESS := 255
+TW_DEFAULT_BRIGHTNESS := 128
 TW_CUSTOM_CPU_TEMP_PATH := /sys/class/thermal/thermal_zone10/temp
 
 # Qualcomm Keymaster 3.0 + Gatekeeper, matching the ROM vendor stack.
 TW_INCLUDE_CRYPTO := true
 TW_INCLUDE_CRYPTO_FBE := true
+# Use the current policy union API; the userdata policy remains FBEv1.
 TW_USE_FSCRYPT_POLICY := 2
 BOARD_USES_QCOM_FBE_DECRYPTION := true
 TW_FORCE_KEYMASTER_VER := true

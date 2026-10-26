@@ -44,7 +44,6 @@ apply_source_patch() {
     fi
 }
 
-apply_source_patch bootable/recovery retrofit-super-image.patch
 apply_source_patch bootable/recovery gui-action-lifetime.patch
 apply_source_patch system/core recovery-crash-dump.patch
 

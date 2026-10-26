@@ -34,3 +34,14 @@ on boot
 on fs
     wait /dev/block/platform/soc/${ro.boot.bootdevice}
     symlink /dev/block/platform/soc/${ro.boot.bootdevice} /dev/block/bootdevice
+
+# This ROM has no physical metadata partition or metadata encryption.
+on init
+    mkdir /metadata 0700 root root
+
+on fs
+    mount tmpfs tmpfs /metadata size=10m
+
+# Match the installed ROM's Keymaster OS version and security patch levels.
+on init
+    setprop prepdecrypt.setpatch true

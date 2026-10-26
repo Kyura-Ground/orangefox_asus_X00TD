@@ -1,17 +1,10 @@
 # <source> <mount point> <type> <mount flags> <fs_mgr flags>
-# These are logical partitions inside retrofit super, not physical ext4 volumes.
-system /system_root ext4 ro,barrier=1,discard wait,logical
-system_ext /system_ext ext4 ro,barrier=1,discard wait,logical
-product /product ext4 ro,barrier=1,discard wait,logical
-vendor /vendor ext4 ro,barrier=1,discard wait,logical
-odm /odm ext4 ro,barrier=1,discard wait,logical
+# Physical partitions, matching the LineageOS 23.2 kernel 4.4 tree.
+/dev/block/bootdevice/by-name/system /system_root ext4 ro,barrier=1 wait
+/dev/block/bootdevice/by-name/vendor /vendor ext4 ro,barrier=1 wait
 
-# X00TD reuses the physical logdump partition for metadata.
-/dev/block/by-name/logdump /metadata ext4 nosuid,nodev,noatime,discard wait,check,formattable
-
-# Keep the exact fscrypt policy used by the Android 17 ROM.
-/dev/block/bootdevice/by-name/userdata /data ext4 nosuid,nodev,barrier=1,noauto_da_alloc,discard,noatime,lazytime wait,check,formattable,quota,fileencryption=aes-256-xts:aes-256-cts:v2+emmc_optimized,reservedsize=128M,fsverity
-/dev/block/bootdevice/by-name/userdata /data f2fs nosuid,nodev,noatime,discard,background_gc=off,fsync_mode=nobarrier,lazytime wait,check,formattable,quota,fileencryption=aes-256-xts:aes-256-cts:v2+emmc_optimized,reservedsize=128M,fsverity
+# Qualcomm ICE uses the legacy FBEv1 keyring.
+/dev/block/bootdevice/by-name/userdata /data ext4 nosuid,nodev,barrier=1,noauto_da_alloc,discard,noatime,lazytime wait,check,fileencryption=ice,quota
 
 /dev/block/bootdevice/by-name/cache /cache ext4 noatime,nosuid,nodev,barrier=1 wait,check
 /dev/block/bootdevice/by-name/cache /cache f2fs noatime,nosuid,nodev,discard,fsync_mode=nobarrier wait,check

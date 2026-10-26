@@ -1,0 +1,22 @@
+# Qualcomm recovery blobs from:
+# https://github.com/Kyura-Ground/proprietary_vendor_asus_sdm660-4.4
+# Commit: b16940d0d4f04fcfb72fe7cd950d6c1446970bb9
+# All binaries are copied without modification.
+# source:destination|sha256
+
+sdm660-common/proprietary/vendor/bin/hw/android.hardware.gatekeeper@1.0-service-qti:recovery/root/system/bin/android.hardware.gatekeeper@1.0-service-qti|e0cd87630655f2208ae9ab0053356d2b30f565590613227f2ea02794b795b51d
+sdm660-common/proprietary/vendor/bin/hw/android.hardware.keymaster@3.0-service-qti:recovery/root/system/bin/android.hardware.keymaster@3.0-service-qti|26e2af87b9707621a7920e6d4c2862769dca8e052be1378faa1ae36e9cde5a84
+sdm660-common/proprietary/vendor/bin/qseecomd:recovery/root/system/bin/qseecomd|104285db4045769c25964fe92986b3696b1281096c12d1e6a86b54096d35ed6e
+sdm660-common/proprietary/vendor/lib64/hw/android.hardware.gatekeeper@1.0-impl-qti.so:recovery/root/vendor/lib64/hw/android.hardware.gatekeeper@1.0-impl-qti.so|10f4f6ddf77962b76fa95445d5c902068eb5f9d2075e01b8028cfaf7434c974a
+sdm660-common/proprietary/vendor/lib64/hw/android.hardware.keymaster@3.0-impl-qti.so:recovery/root/vendor/lib64/hw/android.hardware.keymaster@3.0-impl-qti.so|0fb057230e286a661031ce8bcf6b796ce2ac78994624e5ce9d81c3d32b5178ce
+sdm660-common/proprietary/vendor/lib64/libGPreqcancel.so:recovery/root/vendor/lib64/libGPreqcancel.so|cc7409f25627dc65673a16e4790a02dd7bced99085d32efc4775a8e9e13ec727
+sdm660-common/proprietary/vendor/lib64/libGPreqcancel_svc.so:recovery/root/vendor/lib64/libGPreqcancel_svc.so|212ea89c679bcb20f3bfa07d7731c19157fe376a0974149d0f1de6baf3808df9
+sdm660-common/proprietary/vendor/lib64/libQSEEComAPI.so:recovery/root/vendor/lib64/libQSEEComAPI.so|0f09b8ec3307373b5fccd0fb6ea94e19bfff80ab7fa0403cdf39aa45f1cd568a
+sdm660-common/proprietary/vendor/lib64/libdiag.so:recovery/root/vendor/lib64/libdiag.so|5433e41140c5d23e96bb909e75a919bde52b8587eec219e221c0a8c672135956
+sdm660-common/proprietary/vendor/lib64/libdrmfs.so:recovery/root/vendor/lib64/libdrmfs.so|6dc990fc3c825d497a3792bf568603fd865445e197280964a4203ea35c244dbd
+sdm660-common/proprietary/vendor/lib64/libdrmtime.so:recovery/root/vendor/lib64/libdrmtime.so|282f091e1ab23635512771a2a4336318b9ac9e1b9a42ec7035926c2934370ceb
+sdm660-common/proprietary/vendor/lib64/libkeymasterdeviceutils.so:recovery/root/vendor/lib64/libkeymasterdeviceutils.so|6b0a1020ee828cae9dd5ab035915758e34407fd7dbeea7571b67407bc4051fd2
+sdm660-common/proprietary/vendor/lib64/libqisl.so:recovery/root/vendor/lib64/libqisl.so|09ab0d22fecd9fe8a0010e67e7e092f4a48f2e9b4070b92b3a988a1cd51c4cba
+sdm660-common/proprietary/vendor/lib64/librpmb.so:recovery/root/vendor/lib64/librpmb.so|f7992711933c12e8ca30223f794442ecedd5d69452450fc3ff6a02158fa4d030
+sdm660-common/proprietary/vendor/lib64/libssd.so:recovery/root/vendor/lib64/libssd.so|24de981de2d210ef033d4f4174037181c88bdff682da8c8c698ff6c1ea1b61b3
+sdm660-common/proprietary/vendor/lib64/libtime_genoff.so:recovery/root/vendor/lib64/libtime_genoff.so|aeb1be4abe085d9b61df6663520bc4adc66d9b7bc80f2c14fddb1451096fe64e

@@ -138,7 +138,7 @@ subsystem sound
 # DVB API device nodes
 /dev/dvb*                 0660   root       system
 
-# Devices used by the active 4.19 Qualcomm crypto stack.
+# Devices used by the 4.4 Qualcomm crypto stack.
 /dev/qseecom 0660 system drmrpc
 /dev/ion 0664 system system
 /dev/kgsl-3d0 0660 system graphics
